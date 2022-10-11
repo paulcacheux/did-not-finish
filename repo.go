@@ -110,11 +110,10 @@ func (r *Repo) Dbg() error {
 
 			if r.GpgCheck {
 				rpmReader := bytes.NewReader(pkgRpm)
-				headers, sigs, err := rpmutils.Verify(rpmReader, entityList)
+				_, _, err := rpmutils.Verify(rpmReader, entityList)
 				if err != nil {
 					return err
 				}
-				fmt.Println(headers, sigs)
 			}
 		}
 	}
