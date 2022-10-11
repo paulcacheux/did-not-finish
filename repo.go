@@ -59,8 +59,15 @@ func (r *Repo) Dbg() error {
 		return err
 	}
 
-	if err := r.FetchPrimary(repoMd); err != nil {
+	pkgs, err := r.FetchPackages(repoMd)
+	if err != nil {
 		return err
+	}
+
+	for _, pkg := range pkgs {
+		if strings.HasPrefix(pkg.Name, "kernel-headers") {
+			fmt.Printf("%+v\n", pkg)
+		}
 	}
 
 	return nil
@@ -114,11 +121,13 @@ func (r *Repo) FetchURL() (string, error) {
 	return r.BaseURL, nil
 }
 
-func (r *Repo) FetchPrimary(repoMd *Repomd) error {
+func (r *Repo) FetchPackages(repoMd *Repomd) ([]Package, error) {
 	fetchURL, err := r.FetchURL()
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	allPackages := make([]Package, 0)
 
 	for _, d := range repoMd.Data {
 		if d.Type == "primary" {
@@ -126,18 +135,14 @@ func (r *Repo) FetchPrimary(repoMd *Repomd) error {
 
 			metadata, err := GetAndUnmarshalXML[Metadata](primaryURL, &d.OpenChecksum)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
-			for _, pkg := range metadata.Packages {
-				if strings.HasPrefix(pkg.Name, "kernel-headers") {
-					fmt.Printf("%+v\n", pkg)
-				}
-			}
+			allPackages = append(allPackages, metadata.Packages...)
 		}
 	}
 
-	return nil
+	return allPackages, nil
 }
 
 type Repomd struct {

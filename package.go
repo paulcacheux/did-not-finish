@@ -10,6 +10,7 @@ type Package struct {
 	Arch     string   `xml:"arch"`
 	Version  Version  `xml:"version"`
 	Checksum Checksum `xml:"checksum"`
+	Location Location `xml:"location"`
 }
 
 type Version struct {
