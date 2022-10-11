@@ -73,7 +73,7 @@ func (r *Repo) FetchRepoMD() (*Repomd, error) {
 	}
 
 	repoMDUrl := fetchURL + "repodata/repomd.xml"
-	repoMd, err := GetAndUnmarshalXML[Repomd](repoMDUrl)
+	repoMd, err := GetAndUnmarshalXML[Repomd](repoMDUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func (r *Repo) FetchPrimary(repoMd *Repomd) error {
 		if d.Type == "primary" {
 			primaryURL := fetchURL + d.Location.Href
 
-			metadata, err := GetAndUnmarshalXML[Metadata](primaryURL)
+			metadata, err := GetAndUnmarshalXML[Metadata](primaryURL, &d.OpenChecksum)
 			if err != nil {
 				return err
 			}
