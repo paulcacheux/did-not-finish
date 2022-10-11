@@ -1,6 +1,6 @@
 module github.com/paulcacheux/did-not-finish
 
-go 1.19
+go 1.18
 
 require (
 	github.com/knqyf263/go-rpmdb v0.0.0-20220830120628-c11b1c45080a

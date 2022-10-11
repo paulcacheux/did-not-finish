@@ -104,7 +104,7 @@ func (r *Repo) FetchPackage(pkgMatcher PkgMatchFunc) (*types.Package, []byte, er
 
 	for _, pkg := range pkgs {
 		if pkgMatcher(pkg) {
-			pkgUrl, err := url.JoinPath(fetchURL, pkg.Location.Href)
+			pkgUrl, err := utils.UrlJoinPath(fetchURL, pkg.Location.Href)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -142,7 +142,7 @@ func (r *Repo) FetchRepoMD() (*types.Repomd, error) {
 		return nil, err
 	}
 
-	repoMDUrl, err := url.JoinPath(fetchURL, "repodata/repomd.xml")
+	repoMDUrl, err := utils.UrlJoinPath(fetchURL, "repodata/repomd.xml")
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ func (r *Repo) FetchPackagesLists(repoMd *types.Repomd) ([]*types.Package, error
 
 	for _, d := range repoMd.Data {
 		if d.Type == "primary" {
-			primaryURL, err := url.JoinPath(fetchURL, d.Location.Href)
+			primaryURL, err := utils.UrlJoinPath(fetchURL, d.Location.Href)
 			if err != nil {
 				return nil, err
 			}
