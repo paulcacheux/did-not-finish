@@ -1,13 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-const localRepoPath = "./fixtures/repos"
-const localVarsPath = "./fixtures/vars"
+const localRepoPath = "/etc/yum.repos.d/"
+const localVarsPath = "/etc/dnf/vars"
 
 var baseVariables = map[string]string{
 	"arch":       "aarch64",
@@ -36,6 +37,8 @@ func main() {
 			panic(err)
 		}
 	}
+
+	fmt.Println("SUCCESS")
 }
 
 func readVars(varsDir string) (map[string]string, error) {

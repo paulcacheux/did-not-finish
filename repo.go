@@ -77,8 +77,15 @@ func (r *Repo) Dbg() error {
 
 	var entityList openpgp.EntityList
 	if r.GpgCheck {
-		// publicKeyFile, err := os.Open(r.GpgKey)
-		publicKeyFile, err := os.Open("./fixtures/key")
+		gpgKeyUrl, err := url.Parse(r.GpgKey)
+		if err != nil {
+			return err
+		}
+		if gpgKeyUrl.Scheme != "file" {
+			return fmt.Errorf("only file scheme are supported for gpg key: %s", r.GpgKey)
+		}
+
+		publicKeyFile, err := os.Open(gpgKeyUrl.Path)
 		if err != nil {
 			return err
 		}
