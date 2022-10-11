@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strings"
 
@@ -64,9 +65,18 @@ func (r *Repo) Dbg() error {
 		return err
 	}
 
+	fetchURL, err := r.FetchURL()
+	if err != nil {
+		return err
+	}
+
 	for _, pkg := range pkgs {
 		if strings.HasPrefix(pkg.Name, "kernel-headers") {
-			fmt.Printf("%+v\n", pkg)
+			pkgUrl, err := url.JoinPath(fetchURL, pkg.Location.Href)
+			if err != nil {
+				return err
+			}
+			fmt.Println(pkgUrl)
 		}
 	}
 
@@ -79,7 +89,11 @@ func (r *Repo) FetchRepoMD() (*Repomd, error) {
 		return nil, err
 	}
 
-	repoMDUrl := fetchURL + "repodata/repomd.xml"
+	repoMDUrl, err := url.JoinPath(fetchURL, "repodata/repomd.xml")
+	if err != nil {
+		return nil, err
+	}
+
 	repoMd, err := GetAndUnmarshalXML[Repomd](repoMDUrl, nil)
 	if err != nil {
 		return nil, err
@@ -131,7 +145,10 @@ func (r *Repo) FetchPackages(repoMd *Repomd) ([]Package, error) {
 
 	for _, d := range repoMd.Data {
 		if d.Type == "primary" {
-			primaryURL := fetchURL + d.Location.Href
+			primaryURL, err := url.JoinPath(fetchURL, d.Location.Href)
+			if err != nil {
+				return nil, err
+			}
 
 			metadata, err := GetAndUnmarshalXML[Metadata](primaryURL, &d.OpenChecksum)
 			if err != nil {

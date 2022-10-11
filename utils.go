@@ -37,7 +37,6 @@ func GetAndUnmarshalXML[T any](url string, checksum *Checksum) (*T, error) {
 		return nil, err
 	}
 
-	fmt.Println(string(content))
 	if checksum != nil {
 		if err := verifyChecksum(content, checksum); err != nil {
 			return nil, err
