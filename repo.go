@@ -2,12 +2,17 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/sassoftware/go-rpmutils"
+	"golang.org/x/crypto/openpgp"
 	"gopkg.in/ini.v1"
 )
 
@@ -70,13 +75,47 @@ func (r *Repo) Dbg() error {
 		return err
 	}
 
+	var entityList openpgp.EntityList
+	if r.GpgCheck {
+		// publicKeyFile, err := os.Open(r.GpgKey)
+		publicKeyFile, err := os.Open("./fixtures/key")
+		if err != nil {
+			return err
+		}
+
+		el, err := openpgp.ReadArmoredKeyRing(publicKeyFile)
+		if err != nil {
+			return err
+		}
+		entityList = el
+	}
+
 	for _, pkg := range pkgs {
 		if strings.HasPrefix(pkg.Name, "kernel-headers") {
 			pkgUrl, err := url.JoinPath(fetchURL, pkg.Location.Href)
 			if err != nil {
 				return err
 			}
-			fmt.Println(pkgUrl)
+
+			resp, err := http.Get(pkgUrl)
+			if err != nil {
+				return err
+			}
+			defer resp.Body.Close()
+
+			pkgRpm, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return err
+			}
+
+			if r.GpgCheck {
+				rpmReader := bytes.NewReader(pkgRpm)
+				headers, sigs, err := rpmutils.Verify(rpmReader, entityList)
+				if err != nil {
+					return err
+				}
+				fmt.Println(headers, sigs)
+			}
 		}
 	}
 
