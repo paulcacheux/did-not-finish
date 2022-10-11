@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -17,13 +18,30 @@ var baseVariables = map[string]string{
 }
 
 func main() {
-	vars, err := readVars(localVarsPath)
-	if err != nil {
-		panic(err)
-	}
-	varsReplacer := buildVarsReplacer(baseVariables, vars)
+	var repoPath, varsPaths string
 
-	repos, err := ReadRepositories(localRepoPath, varsReplacer)
+	flag.StringVar(&repoPath, "repos", "/etc/yum.repos.d/", "path to repos")
+	flag.StringVar(&varsPaths, "vars", "/etc/dnf/vars/,/etc/yum/vars/", "paths to variables")
+
+	varMaps := []map[string]string{baseVariables}
+	for _, varDir := range strings.Split(varsPaths, ",") {
+		if varDir == "" {
+			continue
+		}
+
+		vars, err := readVars(localVarsPath)
+		if err != nil {
+			panic(err)
+		}
+
+		if len(vars) != 0 {
+			varMaps = append(varMaps, vars)
+		}
+	}
+
+	varsReplacer := buildVarsReplacer(varMaps...)
+
+	repos, err := ReadRepositories(repoPath, varsReplacer)
 	if err != nil {
 		panic(err)
 	}
