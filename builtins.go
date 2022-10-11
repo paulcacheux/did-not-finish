@@ -62,9 +62,8 @@ func releaseVersionFromRpmDB() (string, error) {
 }
 
 var baseArchMapping = invertMap(map[string][]string{
-	"aarch64": {"aarch64"},
-	"alpha": {"alpha", "alphaev4", "alphaev45", "alphaev5", "alphaev56",
-		"alphaev6", "alphaev67", "alphaev68", "alphaev7", "alphapca56"},
+	"aarch64":     {"aarch64"},
+	"alpha":       {"alpha", "alphaev4", "alphaev45", "alphaev5", "alphaev56", "alphaev6", "alphaev67", "alphaev68", "alphaev7", "alphapca56"},
 	"arm":         {"armv5tejl", "armv5tel", "armv5tl", "armv6l", "armv7l", "armv8l"},
 	"armhfp":      {"armv6hl", "armv7hl", "armv7hnl", "armv8hl"},
 	"i386":        {"i386", "athlon", "geode", "i386", "i486", "i586", "i686"},
@@ -85,9 +84,8 @@ var baseArchMapping = invertMap(map[string][]string{
 	"s390x":       {"s390x"},
 	"sh3":         {"sh3"},
 	"sh4":         {"sh4", "sh4a"},
-	"sparc": {"sparc", "sparc64", "sparc64v", "sparcv8", "sparcv9",
-		"sparcv9v"},
-	"x86_64": {"x86_64", "amd64", "ia32e"},
+	"sparc":       {"sparc", "sparc64", "sparc64v", "sparcv8", "sparcv9", "sparcv9v"},
+	"x86_64":      {"x86_64", "amd64", "ia32e"},
 })
 
 func invertMap(direct map[string][]string) map[string]string {
