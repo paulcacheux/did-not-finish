@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/paulcacheux/did-not-finish/types"
 	"github.com/sassoftware/go-rpmutils"
 	"golang.org/x/crypto/openpgp"
 	"gopkg.in/ini.v1"
@@ -128,7 +129,7 @@ func (r *Repo) Dbg() error {
 	return nil
 }
 
-func (r *Repo) FetchRepoMD() (*Repomd, error) {
+func (r *Repo) FetchRepoMD() (*types.Repomd, error) {
 	fetchURL, err := r.FetchURL()
 	if err != nil {
 		return nil, err
@@ -139,7 +140,7 @@ func (r *Repo) FetchRepoMD() (*Repomd, error) {
 		return nil, err
 	}
 
-	repoMd, err := GetAndUnmarshalXML[Repomd](repoMDUrl, nil)
+	repoMd, err := GetAndUnmarshalXML[types.Repomd](repoMDUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -180,13 +181,13 @@ func (r *Repo) FetchURL() (string, error) {
 	return r.BaseURL, nil
 }
 
-func (r *Repo) FetchPackages(repoMd *Repomd) ([]Package, error) {
+func (r *Repo) FetchPackages(repoMd *types.Repomd) ([]types.Package, error) {
 	fetchURL, err := r.FetchURL()
 	if err != nil {
 		return nil, err
 	}
 
-	allPackages := make([]Package, 0)
+	allPackages := make([]types.Package, 0)
 
 	for _, d := range repoMd.Data {
 		if d.Type == "primary" {
@@ -195,7 +196,7 @@ func (r *Repo) FetchPackages(repoMd *Repomd) ([]Package, error) {
 				return nil, err
 			}
 
-			metadata, err := GetAndUnmarshalXML[Metadata](primaryURL, &d.OpenChecksum)
+			metadata, err := GetAndUnmarshalXML[types.Metadata](primaryURL, &d.OpenChecksum)
 			if err != nil {
 				return nil, err
 			}
@@ -205,21 +206,4 @@ func (r *Repo) FetchPackages(repoMd *Repomd) ([]Package, error) {
 	}
 
 	return allPackages, nil
-}
-
-type Repomd struct {
-	Data []RepomdData `xml:"data"`
-}
-
-type RepomdData struct {
-	Type         string   `xml:"type,attr"`
-	Size         int      `xml:"size"`
-	OpenSize     int      `xml:"open-size"`
-	Location     Location `xml:"location"`
-	Checksum     Checksum `xml:"checksum"`
-	OpenChecksum Checksum `xml:"open-checksum"`
-}
-
-type Location struct {
-	Href string `xml:"href,attr"`
 }

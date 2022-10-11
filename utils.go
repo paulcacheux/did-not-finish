@@ -9,9 +9,11 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/paulcacheux/did-not-finish/types"
 )
 
-func GetAndUnmarshalXML[T any](url string, checksum *Checksum) (*T, error) {
+func GetAndUnmarshalXML[T any](url string, checksum *types.Checksum) (*T, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -50,7 +52,7 @@ func GetAndUnmarshalXML[T any](url string, checksum *Checksum) (*T, error) {
 	return &res, nil
 }
 
-func verifyChecksum(content []byte, checksum *Checksum) error {
+func verifyChecksum(content []byte, checksum *types.Checksum) error {
 	if checksum.Type != "sha256" {
 		return fmt.Errorf("unsupported sha type: %s", checksum.Type)
 	}
