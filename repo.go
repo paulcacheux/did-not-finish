@@ -156,7 +156,11 @@ func (r *Repo) FetchPrimary(repoMd *Repomd) error {
 				return err
 			}
 
-			fmt.Println(string(content))
+			metadata := &Metadata{}
+			if err := xml.Unmarshal(content, metadata); err != nil {
+				return err
+			}
+			fmt.Printf("%+v", metadata)
 		}
 	}
 
@@ -178,9 +182,4 @@ type RepomdData struct {
 
 type Location struct {
 	Href string `xml:"href,attr"`
-}
-
-type Checksum struct {
-	Hash string `xml:",chardata"`
-	Type string `xml:"type,attr"`
 }
