@@ -8,9 +8,6 @@ import (
 	"strings"
 )
 
-const localRepoPath = "/etc/yum.repos.d/"
-const localVarsPath = "/etc/dnf/vars"
-
 var baseVariables = map[string]string{
 	"arch":       "aarch64",
 	"basearch":   "aarch64",
@@ -29,9 +26,9 @@ func main() {
 			continue
 		}
 
-		vars, err := readVars(localVarsPath)
+		vars, err := readVars(varDir)
 		if err != nil {
-			panic(err)
+			continue
 		}
 
 		if len(vars) != 0 {
