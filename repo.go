@@ -2,10 +2,7 @@ package main
 
 import (
 	"bufio"
-	"compress/gzip"
-	"encoding/xml"
 	"fmt"
-	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -76,19 +73,8 @@ func (r *Repo) FetchRepoMD() (*Repomd, error) {
 	}
 
 	repoMDUrl := fetchURL + "repodata/repomd.xml"
-	resp, err := http.Get(repoMDUrl)
+	repoMd, err := GetAndUnmarshalXML[Repomd](repoMDUrl)
 	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	content, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	repoMd := &Repomd{}
-	if err := xml.Unmarshal(content, repoMd); err != nil {
 		return nil, err
 	}
 
@@ -138,25 +124,8 @@ func (r *Repo) FetchPrimary(repoMd *Repomd) error {
 		if d.Type == "primary" {
 			primaryURL := fetchURL + d.Location.Href
 
-			resp, err := http.Get(primaryURL)
+			metadata, err := GetAndUnmarshalXML[Metadata](primaryURL)
 			if err != nil {
-				return err
-			}
-			defer resp.Body.Close()
-
-			gzipReader, err := gzip.NewReader(resp.Body)
-			if err != nil {
-				return err
-			}
-			defer gzipReader.Close()
-
-			content, err := io.ReadAll(gzipReader)
-			if err != nil {
-				return err
-			}
-
-			metadata := &Metadata{}
-			if err := xml.Unmarshal(content, metadata); err != nil {
 				return err
 			}
 
