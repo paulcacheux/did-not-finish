@@ -6,7 +6,7 @@ COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
 COPY . .
-RUN go build -v -o /did-not-finish ./...
+RUN go build -v -o /did-not-finish .
 
 FROM amazonlinux:2022
 

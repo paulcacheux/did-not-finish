@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"testing"
@@ -50,7 +50,7 @@ func TestHostEtcJoin(t *testing.T) {
 	for _, entry := range testEntries {
 		t.Run(entry.name, func(t *testing.T) {
 			t.Setenv("HOST_ETC", entry.hostEtcEnv)
-			got := hostEtcJoin(entry.join...)
+			got := HostEtcJoin(entry.join...)
 			assert.Equal(t, entry.expected, got)
 		})
 	}

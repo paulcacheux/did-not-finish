@@ -1,4 +1,4 @@
-package main
+package repo
 
 import (
 	"bufio"
@@ -11,10 +11,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/paulcacheux/did-not-finish/types"
-	"github.com/sassoftware/go-rpmutils"
 	"golang.org/x/crypto/openpgp"
 	"gopkg.in/ini.v1"
+
+	"github.com/paulcacheux/did-not-finish/internal/utils"
+	"github.com/paulcacheux/did-not-finish/types"
+	"github.com/sassoftware/go-rpmutils"
 )
 
 type Repo struct {
@@ -27,8 +29,8 @@ type Repo struct {
 	GpgKey      string
 }
 
-func ReadRepositories(repoDir string, varsReplacer *strings.Replacer) ([]Repo, error) {
-	repoFiles, err := filepath.Glob(hostEtcJoin(repoDir, "*.repo"))
+func ReadFromDir(repoDir string, varsReplacer *strings.Replacer) ([]Repo, error) {
+	repoFiles, err := filepath.Glob(utils.HostEtcJoin(repoDir, "*.repo"))
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +88,7 @@ func (r *Repo) Dbg() error {
 			return fmt.Errorf("only file scheme are supported for gpg key: %s", r.GpgKey)
 		}
 
-		publicKeyFile, err := os.Open(hostEtcJoin(gpgKeyUrl.Path))
+		publicKeyFile, err := os.Open(utils.HostEtcJoin(gpgKeyUrl.Path))
 		if err != nil {
 			return err
 		}
@@ -140,7 +142,7 @@ func (r *Repo) FetchRepoMD() (*types.Repomd, error) {
 		return nil, err
 	}
 
-	repoMd, err := GetAndUnmarshalXML[types.Repomd](repoMDUrl, nil)
+	repoMd, err := utils.GetAndUnmarshalXML[types.Repomd](repoMDUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +198,7 @@ func (r *Repo) FetchPackages(repoMd *types.Repomd) ([]types.Package, error) {
 				return nil, err
 			}
 
-			metadata, err := GetAndUnmarshalXML[types.Metadata](primaryURL, &d.OpenChecksum)
+			metadata, err := utils.GetAndUnmarshalXML[types.Metadata](primaryURL, &d.OpenChecksum)
 			if err != nil {
 				return nil, err
 			}

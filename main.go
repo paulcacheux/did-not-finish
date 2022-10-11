@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/paulcacheux/did-not-finish/internal/utils"
+	"github.com/paulcacheux/did-not-finish/repo"
 )
 
 func main() {
@@ -39,17 +42,17 @@ func main() {
 
 	varsReplacer := buildVarsReplacer(varMaps...)
 
-	repos, err := ReadRepositories(repoPath, varsReplacer)
+	repos, err := repo.ReadFromDir(repoPath, varsReplacer)
 	if err != nil {
 		panic(err)
 	}
 
-	for _, repo := range repos {
-		if !repo.Enabled {
+	for _, repository := range repos {
+		if !repository.Enabled {
 			continue
 		}
 
-		if err := repo.Dbg(); err != nil {
+		if err := repository.Dbg(); err != nil {
 			panic(err)
 		}
 	}
@@ -58,7 +61,7 @@ func main() {
 }
 
 func readVars(varsDir string) (map[string]string, error) {
-	varsFile, err := os.ReadDir(hostEtcJoin(varsDir))
+	varsFile, err := os.ReadDir(utils.HostEtcJoin(varsDir))
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +73,7 @@ func readVars(varsDir string) (map[string]string, error) {
 		}
 
 		varName := f.Name()
-		value, err := os.ReadFile(hostEtcJoin(varsDir, varName))
+		value, err := os.ReadFile(utils.HostEtcJoin(varsDir, varName))
 		if err != nil {
 			return nil, err
 		}

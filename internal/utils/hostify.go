@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"os"
@@ -8,7 +8,7 @@ import (
 
 const etcPrefix = "/etc"
 
-func hostEtcJoin(parts ...string) string {
+func HostEtcJoin(parts ...string) string {
 	if len(parts) == 0 {
 		return ""
 	}
