@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,7 +27,9 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(repos)
+	for _, repo := range repos {
+		repo.Dbg()
+	}
 }
 
 func readVars(varsDir string) (map[string]string, error) {

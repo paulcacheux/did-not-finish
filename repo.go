@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
+	"net/http"
 	"path/filepath"
 	"strings"
 
@@ -48,4 +51,45 @@ func ReadRepositories(repoDir string, varsReplacer *strings.Replacer) ([]Repo, e
 		}
 	}
 	return repos, nil
+}
+
+func (r *Repo) Dbg() {
+	if !r.Enabled {
+		return
+	}
+
+	fmt.Println(r.FetchURL())
+}
+
+func (r *Repo) FetchURL() (string, error) {
+	if r.BaseURL != "" || r.MirrorList == "" {
+		return r.BaseURL, nil
+	}
+
+	resp, err := http.Get(r.MirrorList)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("bad status: %s", resp.Status)
+	}
+
+	mirrors := make([]string, 0)
+	sc := bufio.NewScanner(resp.Body)
+	for sc.Scan() {
+		if sc.Err() != nil {
+			return "", err
+		}
+
+		mirrors = append(mirrors, sc.Text())
+	}
+
+	if len(mirrors) == 0 {
+		return "", fmt.Errorf("no mirror available")
+	}
+
+	r.BaseURL = mirrors[0]
+	return r.BaseURL, nil
 }
