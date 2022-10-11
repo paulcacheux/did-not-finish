@@ -8,6 +8,7 @@ type Package struct {
 	Type     string   `xml:"type,attr"`
 	Name     string   `xml:"name"`
 	Arch     string   `xml:"arch"`
+	Version  Version  `xml:"version"`
 	Checksum Checksum `xml:"checksum"`
 }
 

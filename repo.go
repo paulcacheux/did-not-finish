@@ -137,7 +137,6 @@ func (r *Repo) FetchPrimary(repoMd *Repomd) error {
 	for _, d := range repoMd.Data {
 		if d.Type == "primary" {
 			primaryURL := fetchURL + d.Location.Href
-			fmt.Println(primaryURL)
 
 			resp, err := http.Get(primaryURL)
 			if err != nil {
@@ -160,7 +159,12 @@ func (r *Repo) FetchPrimary(repoMd *Repomd) error {
 			if err := xml.Unmarshal(content, metadata); err != nil {
 				return err
 			}
-			fmt.Printf("%+v", metadata)
+
+			for _, pkg := range metadata.Packages {
+				if strings.HasPrefix(pkg.Name, "kernel-headers") {
+					fmt.Printf("%+v\n", pkg)
+				}
+			}
 		}
 	}
 
