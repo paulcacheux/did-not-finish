@@ -62,75 +62,78 @@ func ReadFromDir(repoDir string, varsReplacer *strings.Replacer) ([]Repo, error)
 	return repos, nil
 }
 
-func (r *Repo) FetchPackage(packageName string) ([]byte, error) {
+type PkgMatchFunc = func(*types.Package) bool
+
+func (r *Repo) FetchPackage(pkgMatcher PkgMatchFunc) (*types.Package, []byte, error) {
 	repoMd, err := r.FetchRepoMD()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	pkgs, err := r.FetchPackagesLists(repoMd)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	fetchURL, err := r.FetchURL()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var entityList openpgp.EntityList
 	if r.GpgCheck {
 		gpgKeyUrl, err := url.Parse(r.GpgKey)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if gpgKeyUrl.Scheme != "file" {
-			return nil, fmt.Errorf("only file scheme are supported for gpg key: %s", r.GpgKey)
+			return nil, nil, fmt.Errorf("only file scheme are supported for gpg key: %s", r.GpgKey)
 		}
 
 		publicKeyFile, err := os.Open(utils.HostEtcJoin(gpgKeyUrl.Path))
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		el, err := openpgp.ReadArmoredKeyRing(publicKeyFile)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		entityList = el
 	}
 
 	for _, pkg := range pkgs {
-		if pkg.Name == packageName {
+		if pkgMatcher(pkg) {
 			pkgUrl, err := url.JoinPath(fetchURL, pkg.Location.Href)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			resp, err := http.Get(pkgUrl)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			defer resp.Body.Close()
 
 			pkgRpm, err := io.ReadAll(resp.Body)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			if r.GpgCheck {
 				rpmReader := bytes.NewReader(pkgRpm)
 				_, _, err := rpmutils.Verify(rpmReader, entityList)
 				if err != nil {
-					return nil, err
+					return nil, nil, err
 				}
 			}
 
-			return pkgRpm, nil
+			return pkg, pkgRpm, nil
 		}
 	}
 
-	return nil, fmt.Errorf("cannot find package  %s", packageName)
+	// no error, but no package found either
+	return nil, nil, nil
 }
 
 func (r *Repo) FetchRepoMD() (*types.Repomd, error) {
@@ -185,13 +188,13 @@ func (r *Repo) FetchURL() (string, error) {
 	return r.BaseURL, nil
 }
 
-func (r *Repo) FetchPackagesLists(repoMd *types.Repomd) ([]types.Package, error) {
+func (r *Repo) FetchPackagesLists(repoMd *types.Repomd) ([]*types.Package, error) {
 	fetchURL, err := r.FetchURL()
 	if err != nil {
 		return nil, err
 	}
 
-	allPackages := make([]types.Package, 0)
+	allPackages := make([]*types.Package, 0)
 
 	for _, d := range repoMd.Data {
 		if d.Type == "primary" {

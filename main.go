@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/paulcacheux/did-not-finish/backend"
+	"github.com/paulcacheux/did-not-finish/types"
 )
 
 func main() {
@@ -31,7 +32,9 @@ func main() {
 			continue
 		}
 
-		_, err := repository.FetchPackage("kernel-headers")
+		_, _, err := repository.FetchPackage(func(p *types.Package) bool {
+			return p.Name == "kernel-headers"
+		})
 		if err != nil {
 			panic(err)
 		}

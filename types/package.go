@@ -1,7 +1,7 @@
 package types
 
 type Metadata struct {
-	Packages []Package `xml:"package"`
+	Packages []*Package `xml:"package"`
 }
 
 type Package struct {
