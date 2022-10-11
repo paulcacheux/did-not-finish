@@ -6,12 +6,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/shirou/gopsutil/v3/host"
 )
 
 var baseVariables = map[string]string{
 	"arch":       "aarch64",
 	"basearch":   "aarch64",
 	"releasever": "2022.0.20220928",
+	// "releasever": "2022",
 }
 
 func main() {
@@ -19,6 +22,14 @@ func main() {
 
 	flag.StringVar(&repoPath, "repos", "/etc/yum.repos.d/", "path to repos")
 	flag.StringVar(&varsPaths, "vars", "/etc/dnf/vars/,/etc/yum/vars/", "paths to variables")
+
+	flag.Parse()
+
+	infoStat, err := host.Info()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(infoStat)
 
 	varMaps := []map[string]string{baseVariables}
 	for _, varDir := range strings.Split(varsPaths, ",") {
