@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"encoding/xml"
 	"fmt"
+	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -53,12 +55,35 @@ func ReadRepositories(repoDir string, varsReplacer *strings.Replacer) ([]Repo, e
 	return repos, nil
 }
 
-func (r *Repo) Dbg() {
+func (r *Repo) Dbg() error {
 	if !r.Enabled {
-		return
+		return nil
 	}
 
-	fmt.Println(r.FetchURL())
+	fetchURL, err := r.FetchURL()
+	if err != nil {
+		return err
+	}
+
+	repoMDUrl := fetchURL + "repodata/repomd.xml"
+	resp, err := http.Get(repoMDUrl)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	content, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	var repoMd Repomd
+	if err := xml.Unmarshal(content, &repoMd); err != nil {
+		return err
+	}
+
+	fmt.Printf("%+v\n", repoMd)
+	return nil
 }
 
 func (r *Repo) FetchURL() (string, error) {
@@ -92,4 +117,25 @@ func (r *Repo) FetchURL() (string, error) {
 
 	r.BaseURL = mirrors[0]
 	return r.BaseURL, nil
+}
+
+type Repomd struct {
+	Data []RepomdData `xml:"data"`
+}
+
+type RepomdData struct {
+	Type     string   `xml:"type,attr"`
+	Size     int      `xml:"size"`
+	OpenSize int      `xml:"open-size"`
+	Location Location `xml:"location"`
+	Checksum Checksum `xml:"checksum"`
+}
+
+type Location struct {
+	Href string `xml:"href,attr"`
+}
+
+type Checksum struct {
+	Hash string `xml:",chardata"`
+	Type string `xml:"type,attr"`
 }

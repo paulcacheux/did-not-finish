@@ -28,7 +28,9 @@ func main() {
 	}
 
 	for _, repo := range repos {
-		repo.Dbg()
+		if err := repo.Dbg(); err != nil {
+			panic(err)
+		}
 	}
 }
 
