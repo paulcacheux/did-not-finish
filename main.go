@@ -6,16 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/shirou/gopsutil/v3/host"
 )
-
-var baseVariables = map[string]string{
-	"arch":       "aarch64",
-	"basearch":   "aarch64",
-	"releasever": "2022.0.20220928",
-	// "releasever": "2022",
-}
 
 func main() {
 	var repoPath, varsPaths string
@@ -25,13 +16,13 @@ func main() {
 
 	flag.Parse()
 
-	infoStat, err := host.Info()
+	builtinVars, err := computeBuiltinVariables()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(infoStat)
+	fmt.Println(builtinVars)
 
-	varMaps := []map[string]string{baseVariables}
+	varMaps := []map[string]string{builtinVars}
 	for _, varDir := range strings.Split(varsPaths, ",") {
 		if varDir == "" {
 			continue
