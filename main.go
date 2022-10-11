@@ -31,7 +31,8 @@ func main() {
 			continue
 		}
 
-		if err := repository.Dbg(); err != nil {
+		_, err := repository.FetchPackage("kernel-headers")
+		if err != nil {
 			panic(err)
 		}
 	}

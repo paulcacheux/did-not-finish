@@ -62,73 +62,75 @@ func ReadFromDir(repoDir string, varsReplacer *strings.Replacer) ([]Repo, error)
 	return repos, nil
 }
 
-func (r *Repo) Dbg() error {
+func (r *Repo) FetchPackage(packageName string) ([]byte, error) {
 	repoMd, err := r.FetchRepoMD()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	pkgs, err := r.FetchPackages(repoMd)
+	pkgs, err := r.FetchPackagesLists(repoMd)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	fetchURL, err := r.FetchURL()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var entityList openpgp.EntityList
 	if r.GpgCheck {
 		gpgKeyUrl, err := url.Parse(r.GpgKey)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if gpgKeyUrl.Scheme != "file" {
-			return fmt.Errorf("only file scheme are supported for gpg key: %s", r.GpgKey)
+			return nil, fmt.Errorf("only file scheme are supported for gpg key: %s", r.GpgKey)
 		}
 
 		publicKeyFile, err := os.Open(utils.HostEtcJoin(gpgKeyUrl.Path))
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		el, err := openpgp.ReadArmoredKeyRing(publicKeyFile)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		entityList = el
 	}
 
 	for _, pkg := range pkgs {
-		if strings.HasPrefix(pkg.Name, "kernel-headers") {
+		if pkg.Name == packageName {
 			pkgUrl, err := url.JoinPath(fetchURL, pkg.Location.Href)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			resp, err := http.Get(pkgUrl)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			defer resp.Body.Close()
 
 			pkgRpm, err := io.ReadAll(resp.Body)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			if r.GpgCheck {
 				rpmReader := bytes.NewReader(pkgRpm)
 				_, _, err := rpmutils.Verify(rpmReader, entityList)
 				if err != nil {
-					return err
+					return nil, err
 				}
 			}
+
+			return pkgRpm, nil
 		}
 	}
 
-	return nil
+	return nil, fmt.Errorf("cannot find package  %s", packageName)
 }
 
 func (r *Repo) FetchRepoMD() (*types.Repomd, error) {
@@ -183,7 +185,7 @@ func (r *Repo) FetchURL() (string, error) {
 	return r.BaseURL, nil
 }
 
-func (r *Repo) FetchPackages(repoMd *types.Repomd) ([]types.Package, error) {
+func (r *Repo) FetchPackagesLists(repoMd *types.Repomd) ([]types.Package, error) {
 	fetchURL, err := r.FetchURL()
 	if err != nil {
 		return nil, err
