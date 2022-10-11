@@ -3,11 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"strings"
 
-	"github.com/paulcacheux/did-not-finish/internal/utils"
-	"github.com/paulcacheux/did-not-finish/repo"
+	"github.com/paulcacheux/did-not-finish/backend"
 )
 
 func main() {
@@ -18,36 +16,17 @@ func main() {
 
 	flag.Parse()
 
-	builtinVars, err := computeBuiltinVariables()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(builtinVars)
-
-	varMaps := []map[string]string{builtinVars}
-	for _, varDir := range strings.Split(varsPaths, ",") {
-		if varDir == "" {
-			continue
-		}
-
-		vars, err := readVars(varDir)
-		if err != nil {
-			continue
-		}
-
-		if len(vars) != 0 {
-			varMaps = append(varMaps, vars)
-		}
-	}
-
-	varsReplacer := buildVarsReplacer(varMaps...)
-
-	repos, err := repo.ReadFromDir(repoPath, varsReplacer)
+	builtinVars, err := backend.ComputeBuiltinVariables()
 	if err != nil {
 		panic(err)
 	}
 
-	for _, repository := range repos {
+	b, err := backend.NewBackend(repoPath, strings.Split(varsPaths, ","), builtinVars)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, repository := range b.Repositories {
 		if !repository.Enabled {
 			continue
 		}
@@ -58,43 +37,4 @@ func main() {
 	}
 
 	fmt.Println("SUCCESS")
-}
-
-func readVars(varsDir string) (map[string]string, error) {
-	varsFile, err := os.ReadDir(utils.HostEtcJoin(varsDir))
-	if err != nil {
-		return nil, err
-	}
-
-	vars := make(map[string]string)
-	for _, f := range varsFile {
-		if f.IsDir() {
-			continue
-		}
-
-		varName := f.Name()
-		value, err := os.ReadFile(utils.HostEtcJoin(varsDir, varName))
-		if err != nil {
-			return nil, err
-		}
-
-		vars[varName] = strings.TrimSpace(string(value))
-	}
-	return vars, nil
-}
-
-func buildVarsReplacer(varMaps ...map[string]string) *strings.Replacer {
-	count := 0
-	for _, varMap := range varMaps {
-		count += len(varMap)
-	}
-
-	pairs := make([]string, 0, count*2)
-	for _, varMap := range varMaps {
-		for name, value := range varMap {
-			pairs = append(pairs, "$"+name, value)
-		}
-	}
-
-	return strings.NewReplacer(pairs...)
 }

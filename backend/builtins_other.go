@@ -1,8 +1,8 @@
 //go:build !linux
 
-package main
+package backend
 
-func computeBuiltinVariables() (map[string]string, error) {
+func ComputeBuiltinVariables() (map[string]string, error) {
 	return map[string]string{
 		"arch":       "aarch64",
 		"basearch":   "aarch64",

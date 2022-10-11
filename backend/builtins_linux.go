@@ -1,4 +1,4 @@
-package main
+package backend
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"github.com/shirou/gopsutil/v3/host"
 )
 
-func computeBuiltinVariables() (map[string]string, error) {
+func ComputeBuiltinVariables() (map[string]string, error) {
 	arch, baseArch, err := computeArch()
 	if err != nil {
 		return nil, err
