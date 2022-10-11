@@ -28,6 +28,10 @@ func main() {
 	}
 
 	for _, repo := range repos {
+		if !repo.Enabled {
+			continue
+		}
+
 		if err := repo.Dbg(); err != nil {
 			panic(err)
 		}

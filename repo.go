@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"compress/gzip"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -56,34 +57,42 @@ func ReadRepositories(repoDir string, varsReplacer *strings.Replacer) ([]Repo, e
 }
 
 func (r *Repo) Dbg() error {
-	if !r.Enabled {
-		return nil
-	}
-
-	fetchURL, err := r.FetchURL()
+	repoMd, err := r.FetchRepoMD()
 	if err != nil {
 		return err
+	}
+
+	if err := r.FetchPrimary(repoMd); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Repo) FetchRepoMD() (*Repomd, error) {
+	fetchURL, err := r.FetchURL()
+	if err != nil {
+		return nil, err
 	}
 
 	repoMDUrl := fetchURL + "repodata/repomd.xml"
 	resp, err := http.Get(repoMDUrl)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	content, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	var repoMd Repomd
-	if err := xml.Unmarshal(content, &repoMd); err != nil {
-		return err
+	repoMd := &Repomd{}
+	if err := xml.Unmarshal(content, repoMd); err != nil {
+		return nil, err
 	}
 
-	fmt.Printf("%+v\n", repoMd)
-	return nil
+	return repoMd, nil
 }
 
 func (r *Repo) FetchURL() (string, error) {
@@ -119,16 +128,52 @@ func (r *Repo) FetchURL() (string, error) {
 	return r.BaseURL, nil
 }
 
+func (r *Repo) FetchPrimary(repoMd *Repomd) error {
+	fetchURL, err := r.FetchURL()
+	if err != nil {
+		return err
+	}
+
+	for _, d := range repoMd.Data {
+		if d.Type == "primary" {
+			primaryURL := fetchURL + d.Location.Href
+			fmt.Println(primaryURL)
+
+			resp, err := http.Get(primaryURL)
+			if err != nil {
+				return err
+			}
+			defer resp.Body.Close()
+
+			gzipReader, err := gzip.NewReader(resp.Body)
+			if err != nil {
+				return err
+			}
+			defer gzipReader.Close()
+
+			content, err := io.ReadAll(gzipReader)
+			if err != nil {
+				return err
+			}
+
+			fmt.Println(string(content))
+		}
+	}
+
+	return nil
+}
+
 type Repomd struct {
 	Data []RepomdData `xml:"data"`
 }
 
 type RepomdData struct {
-	Type     string   `xml:"type,attr"`
-	Size     int      `xml:"size"`
-	OpenSize int      `xml:"open-size"`
-	Location Location `xml:"location"`
-	Checksum Checksum `xml:"checksum"`
+	Type         string   `xml:"type,attr"`
+	Size         int      `xml:"size"`
+	OpenSize     int      `xml:"open-size"`
+	Location     Location `xml:"location"`
+	Checksum     Checksum `xml:"checksum"`
+	OpenChecksum Checksum `xml:"open-checksum"`
 }
 
 type Location struct {
