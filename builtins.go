@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -36,12 +37,28 @@ func releaseVersionFromRpmDB() (string, error) {
 		return "", err
 	}
 
+	pkgVersions := make(map[string]string)
 	for _, pkg := range pkgList {
+		pkgVersions[pkg.Name] = pkg.Version
 		if strings.HasPrefix(pkg.Name, "system-release") {
 			return pkg.Version, nil
 		}
 	}
-	return "", nil
+
+	distroPackages := []string{
+		"system-release(releasever)", "system-release",
+		"distribution-release(releasever)", "distribution-release",
+		"redhat-release", "suse-release",
+	}
+
+	for _, distroPkg := range distroPackages {
+		version, ok := pkgVersions[distroPkg]
+		if ok {
+			return version, nil
+		}
+	}
+
+	return "", errors.New("cannot find a matching version for a distribution package")
 }
 
 var baseArchMapping = invertMap(map[string][]string{
