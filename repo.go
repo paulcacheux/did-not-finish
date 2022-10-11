@@ -27,7 +27,7 @@ type Repo struct {
 }
 
 func ReadRepositories(repoDir string, varsReplacer *strings.Replacer) ([]Repo, error) {
-	repoFiles, err := filepath.Glob(filepath.Join(repoDir, "*.repo"))
+	repoFiles, err := filepath.Glob(hostEtcJoin(repoDir, "*.repo"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (r *Repo) Dbg() error {
 			return fmt.Errorf("only file scheme are supported for gpg key: %s", r.GpgKey)
 		}
 
-		publicKeyFile, err := os.Open(gpgKeyUrl.Path)
+		publicKeyFile, err := os.Open(hostEtcJoin(gpgKeyUrl.Path))
 		if err != nil {
 			return err
 		}

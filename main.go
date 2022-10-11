@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -59,7 +58,7 @@ func main() {
 }
 
 func readVars(varsDir string) (map[string]string, error) {
-	varsFile, err := os.ReadDir(varsDir)
+	varsFile, err := os.ReadDir(hostEtcJoin(varsDir))
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +70,7 @@ func readVars(varsDir string) (map[string]string, error) {
 		}
 
 		varName := f.Name()
-		value, err := os.ReadFile(filepath.Join(varsDir, varName))
+		value, err := os.ReadFile(hostEtcJoin(varsDir, varName))
 		if err != nil {
 			return nil, err
 		}
