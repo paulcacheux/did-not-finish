@@ -7,6 +7,8 @@ import (
 
 	rpmdb "github.com/knqyf263/go-rpmdb/pkg"
 	"github.com/shirou/gopsutil/v3/host"
+
+	"github.com/paulcacheux/did-not-finish/internal/utils"
 )
 
 func ComputeBuiltinVariables(releaseVersion string) (map[string]string, error) {
@@ -31,7 +33,7 @@ func ComputeBuiltinVariables(releaseVersion string) (map[string]string, error) {
 }
 
 func releaseVersionFromRpmDB() (string, error) {
-	db, err := rpmdb.Open(HostVarJoin("/var/lib/rpm/rpmdb.sqlite"))
+	db, err := rpmdb.Open(utils.HostVarJoin("/var/lib/rpm/rpmdb.sqlite"))
 	if err != nil {
 		return "", err
 	}
