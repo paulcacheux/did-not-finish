@@ -6,22 +6,20 @@ import (
 	"strings"
 )
 
-const etcPrefix = "/etc"
-
 func rawHostJoin(envName, defaultValue string, parts ...string) string {
 	if len(parts) == 0 {
 		return ""
 	}
 
 	first := parts[0]
-	hostEtc := os.Getenv("HOST_ETC")
-	if hostEtc == "" || !strings.HasPrefix(first, etcPrefix) {
+	hostPath := os.Getenv(envName)
+	if hostPath == "" || !strings.HasPrefix(first, defaultValue) {
 		return filepath.Join(parts...)
 	}
 
-	first = strings.TrimPrefix(first, etcPrefix)
+	first = strings.TrimPrefix(first, defaultValue)
 	newParts := make([]string, len(parts)+1)
-	newParts[0] = hostEtc
+	newParts[0] = hostPath
 	newParts[1] = first
 	if len(parts) > 1 {
 		copy(newParts[2:], parts[1:])
