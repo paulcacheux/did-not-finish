@@ -8,7 +8,7 @@ import (
 
 const etcPrefix = "/etc"
 
-func HostEtcJoin(parts ...string) string {
+func rawHostJoin(envName, defaultValue string, parts ...string) string {
 	if len(parts) == 0 {
 		return ""
 	}
@@ -27,4 +27,12 @@ func HostEtcJoin(parts ...string) string {
 		copy(newParts[2:], parts[1:])
 	}
 	return filepath.Join(newParts...)
+}
+
+func HostEtcJoin(parts ...string) string {
+	return rawHostJoin("HOST_ETC", "/etc", parts...)
+}
+
+func HostVarJoin(parts ...string) string {
+	return rawHostJoin("HOST_VAR", "/var", parts...)
 }

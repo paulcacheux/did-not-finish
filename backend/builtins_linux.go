@@ -31,7 +31,7 @@ func ComputeBuiltinVariables(releaseVersion string) (map[string]string, error) {
 }
 
 func releaseVersionFromRpmDB() (string, error) {
-	db, err := rpmdb.Open("/var/lib/rpm/rpmdb.sqlite")
+	db, err := rpmdb.Open(HostVarJoin("/var/lib/rpm/rpmdb.sqlite"))
 	if err != nil {
 		return "", err
 	}
