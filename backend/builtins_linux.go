@@ -9,15 +9,18 @@ import (
 	"github.com/shirou/gopsutil/v3/host"
 )
 
-func ComputeBuiltinVariables() (map[string]string, error) {
+func ComputeBuiltinVariables(releaseVersion string) (map[string]string, error) {
 	arch, baseArch, err := computeArch()
 	if err != nil {
 		return nil, err
 	}
 
-	releaseVersion, err := releaseVersionFromRpmDB()
-	if err != nil {
-		return nil, err
+	if releaseVersion == "" {
+		rv, err := releaseVersionFromRpmDB()
+		if err != nil {
+			return nil, err
+		}
+		releaseVersion = rv
 	}
 
 	return map[string]string{

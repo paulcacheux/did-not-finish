@@ -2,10 +2,14 @@
 
 package backend
 
-func ComputeBuiltinVariables() (map[string]string, error) {
+func ComputeBuiltinVariables(releaseVersion string) (map[string]string, error) {
+	if releaseVersion == "" {
+		releaseVersion = "2022.0.20220928"
+	}
+
 	return map[string]string{
 		"arch":       "aarch64",
 		"basearch":   "aarch64",
-		"releasever": "2022.0.20220928",
+		"releasever": releaseVersion,
 	}, nil
 }

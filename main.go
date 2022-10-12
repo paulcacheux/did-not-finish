@@ -17,7 +17,7 @@ func main() {
 
 	flag.Parse()
 
-	builtinVars, err := backend.ComputeBuiltinVariables()
+	builtinVars, err := backend.ComputeBuiltinVariables("")
 	if err != nil {
 		panic(err)
 	}
