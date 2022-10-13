@@ -103,6 +103,11 @@ func (r *Repo) FetchPackage(pkgMatcher PkgMatchFunc) (*types.Package, []byte, er
 	}
 
 	for _, pkg := range pkgs {
+		if strings.Contains(pkg.Name, "kernel") {
+			pkgKernel := fmt.Sprintf("%s-%s.%s", pkg.Version.Ver, pkg.Version.Rel, pkg.Arch)
+			fmt.Printf("%s -> %s\n", pkg.Name, pkgKernel)
+		}
+
 		if pkgMatcher(pkg) {
 			pkgUrl, err := utils.UrlJoinPath(fetchURL, pkg.Location.Href)
 			if err != nil {
