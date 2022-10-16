@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	rpmdb "github.com/knqyf263/go-rpmdb/pkg"
 	"github.com/shirou/gopsutil/v3/host"
 
 	"github.com/paulcacheux/did-not-finish/internal/utils"
@@ -17,53 +16,11 @@ func ComputeBuiltinVariables(releaseVersion string) (map[string]string, error) {
 		return nil, err
 	}
 
-	if releaseVersion == "" {
-		rv, err := releaseVersionFromRpmDB()
-		if err != nil {
-			return nil, err
-		}
-		releaseVersion = rv
-	}
-
 	return map[string]string{
 		"arch":       arch,
 		"basearch":   baseArch,
 		"releasever": releaseVersion,
 	}, nil
-}
-
-func releaseVersionFromRpmDB() (string, error) {
-	db, err := rpmdb.Open(utils.HostVarJoin("/var/lib/rpm/rpmdb.sqlite"))
-	if err != nil {
-		return "", err
-	}
-	pkgList, err := db.ListPackages()
-	if err != nil {
-		return "", err
-	}
-
-	pkgVersions := make(map[string]string)
-	for _, pkg := range pkgList {
-		pkgVersions[pkg.Name] = pkg.Version
-		if strings.HasPrefix(pkg.Name, "system-release") {
-			return pkg.Version, nil
-		}
-	}
-
-	distroPackages := []string{
-		"system-release(releasever)", "system-release",
-		"distribution-release(releasever)", "distribution-release",
-		"redhat-release", "suse-release",
-	}
-
-	for _, distroPkg := range distroPackages {
-		version, ok := pkgVersions[distroPkg]
-		if ok {
-			return version, nil
-		}
-	}
-
-	return "", errors.New("cannot find a matching version for a distribution package")
 }
 
 var baseArchMapping = invertMap(map[string][]string{
