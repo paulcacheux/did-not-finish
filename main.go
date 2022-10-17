@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/paulcacheux/did-not-finish/al2022"
 	"github.com/paulcacheux/did-not-finish/backend"
 	"github.com/paulcacheux/did-not-finish/types"
 )
@@ -17,7 +18,12 @@ func main() {
 
 	flag.Parse()
 
-	builtinVars, err := backend.ComputeBuiltinVariables("")
+	al2022version, err := al2022.ExtractReleaseVersionFromImageID()
+	if err != nil {
+		panic(err)
+	}
+
+	builtinVars, err := backend.ComputeBuiltinVariables(al2022version)
 	if err != nil {
 		panic(err)
 	}

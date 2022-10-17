@@ -1,13 +1,9 @@
 package backend
 
 import (
-	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/shirou/gopsutil/v3/host"
-
-	"github.com/paulcacheux/did-not-finish/internal/utils"
 )
 
 func ComputeBuiltinVariables(releaseVersion string) (map[string]string, error) {
