@@ -3,6 +3,7 @@ module github.com/paulcacheux/did-not-finish
 go 1.18
 
 require (
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/sassoftware/go-rpmutils v0.2.0
 	github.com/shirou/gopsutil/v3 v3.22.9
 	github.com/stretchr/testify v1.8.0
@@ -14,6 +15,7 @@ require (
 	github.com/DataDog/zstd v1.4.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/klauspost/compress v1.11.7 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

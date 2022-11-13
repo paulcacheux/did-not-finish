@@ -1,11 +1,14 @@
 package backend
 
 import (
+	"errors"
 	"os"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/paulcacheux/did-not-finish/internal/utils"
 	"github.com/paulcacheux/did-not-finish/repo"
+	"github.com/paulcacheux/did-not-finish/types"
 )
 
 type Backend struct {
@@ -39,6 +42,32 @@ func NewBackend(reposDir string, varsDir []string, builtinVariables map[string]s
 	return &Backend{
 		Repositories: repos,
 	}, nil
+}
+
+func (b *Backend) AppendRepository(r repo.Repo) {
+	b.Repositories = append(b.Repositories, r)
+}
+
+func (b *Backend) FetchPackage(matcher repo.PkgMatchFunc) (*types.Package, []byte, error) {
+	var mErr error
+
+	for _, repository := range b.Repositories {
+		if !repository.Enabled {
+			continue
+		}
+
+		p, content, err := repository.FetchPackage(matcher)
+		if err != nil {
+			mErr = multierror.Append(mErr, err)
+			continue
+		}
+		return p, content, nil
+	}
+
+	if mErr == nil {
+		return nil, nil, errors.New("no repository available")
+	}
+	return nil, nil, mErr
 }
 
 func readVars(varsDir string) (map[string]string, error) {

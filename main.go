@@ -27,17 +27,11 @@ func main() {
 		panic(err)
 	}
 
-	for _, repository := range b.Repositories {
-		if !repository.Enabled {
-			continue
-		}
-
-		_, _, err := repository.FetchPackage(func(p *types.Package) bool {
-			return p.Name == "kernel-headers"
-		})
-		if err != nil {
-			panic(err)
-		}
+	_, _, err = b.FetchPackage(func(p *types.Package) bool {
+		return p.Name == "kernel-headers"
+	})
+	if err != nil {
+		panic(err)
 	}
 
 	fmt.Println("SUCCESS")
