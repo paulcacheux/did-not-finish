@@ -156,11 +156,24 @@ func (r *Repo) FetchRepoMD() (*types.Repomd, error) {
 }
 
 func (r *Repo) FetchURL() (string, error) {
-	if r.BaseURL != "" || r.MirrorList == "" {
+	if r.BaseURL != "" {
 		return r.BaseURL, nil
 	}
 
-	resp, err := http.Get(r.MirrorList)
+	if r.MirrorList != "" {
+		baseURL, err := fetchURLFromMirrorList(r.MirrorList)
+		if err != nil {
+			return "", err
+		}
+		r.BaseURL = baseURL
+		return r.BaseURL, nil
+	}
+
+	return "", fmt.Errorf("unable to get a base URL for this repo `%s`", r.Name)
+}
+
+func fetchURLFromMirrorList(mirrorListURL string) (string, error) {
+	resp, err := http.Get(mirrorListURL)
 	if err != nil {
 		return "", err
 	}
@@ -189,8 +202,7 @@ func (r *Repo) FetchURL() (string, error) {
 		return "", fmt.Errorf("no mirror available")
 	}
 
-	r.BaseURL = mirrors[0]
-	return r.BaseURL, nil
+	return mirrors[0], nil
 }
 
 func (r *Repo) FetchPackagesLists(repoMd *types.Repomd) ([]*types.Package, error) {
