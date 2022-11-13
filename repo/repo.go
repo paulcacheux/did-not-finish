@@ -137,7 +137,7 @@ func (r *Repo) FetchPackage(pkgMatcher PkgMatchFunc) (*types.Package, []byte, er
 	}
 
 	// no error, but no package found either
-	return nil, nil, nil
+	return nil, nil, fmt.Errorf("failed to find valid package from repo %s", r.Name)
 }
 
 const repomdSubpath = "repodata/repomd.xml"
