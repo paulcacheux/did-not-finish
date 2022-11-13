@@ -171,6 +171,10 @@ func (r *Repo) FetchURL() (string, error) {
 		return r.BaseURL, nil
 	}
 
+	if r.MetaLink != "" {
+		fetchURLFromMetaLink(r.MetaLink)
+	}
+
 	return "", fmt.Errorf("unable to get a base URL for this repo `%s`", r.Name)
 }
 
@@ -208,7 +212,13 @@ func fetchURLFromMirrorList(mirrorListURL string) (string, error) {
 }
 
 func fetchURLFromMetaLink(metaLinkURL string) (string, error) {
+	metalink, err := utils.GetAndUnmarshalXML[types.MetaLink](metaLinkURL, nil)
+	if err != nil {
+		return "", err
+	}
 
+	fmt.Printf("metalink: %+v\n", metalink)
+	return "", nil
 }
 
 func (r *Repo) FetchPackagesLists(repoMd *types.Repomd) ([]*types.Package, error) {

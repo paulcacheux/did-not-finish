@@ -18,9 +18,24 @@ type Location struct {
 }
 
 type MetaLink struct {
-	Files []MetaLinkFile `xml:"files"`
+	Files MetaLinkFiles `xml:"files"`
+}
+
+type MetaLinkFiles struct {
+	Files []MetaLinkFile `xml:"file"`
 }
 
 type MetaLinkFile struct {
-	Name string `xml:"name,attr"`
+	Name      string                `xml:"name,attr"`
+	Resources MetaLinkFileResources `xml:"resources"`
+}
+
+type MetaLinkFileResources struct {
+	Urls []MetaLinkFileResourceURL `xml:"url"`
+}
+
+type MetaLinkFileResourceURL struct {
+	Protocol   string `xml:"protocol,attr"`
+	Preference int    `xml:"preference,attr"`
+	URL        string `xml:",chardata"`
 }
