@@ -3,12 +3,14 @@ package repo
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"golang.org/x/crypto/openpgp"
@@ -138,15 +140,21 @@ func (r *Repo) FetchPackage(pkgMatcher PkgMatchFunc) (*types.Package, []byte, er
 	return nil, nil, nil
 }
 
+const repomdSubpath = "repodata/repomd.xml"
+
 func (r *Repo) FetchRepoMD() (*types.Repomd, error) {
 	fetchURL, err := r.FetchURL()
 	if err != nil {
 		return nil, err
 	}
 
-	repoMDUrl, err := utils.UrlJoinPath(fetchURL, "repodata/repomd.xml")
-	if err != nil {
-		return nil, err
+	repoMDUrl := fetchURL
+	if !strings.HasSuffix(repoMDUrl, "repomd.xml") {
+		withFile, err := utils.UrlJoinPath(fetchURL, repomdSubpath)
+		if err != nil {
+			return nil, err
+		}
+		repoMDUrl = withFile
 	}
 
 	repoMd, err := utils.GetAndUnmarshalXML[types.Repomd](repoMDUrl, nil)
@@ -172,7 +180,12 @@ func (r *Repo) FetchURL() (string, error) {
 	}
 
 	if r.MetaLink != "" {
-		fetchURLFromMetaLink(r.MetaLink)
+		url, err := fetchURLFromMetaLink(r.MetaLink)
+		if err != nil {
+			return "", err
+		}
+		r.BaseURL = url
+		return r.BaseURL, nil
 	}
 
 	return "", fmt.Errorf("unable to get a base URL for this repo `%s`", r.Name)
@@ -217,8 +230,29 @@ func fetchURLFromMetaLink(metaLinkURL string) (string, error) {
 		return "", err
 	}
 
-	fmt.Printf("metalink: %+v\n", metalink)
-	return "", nil
+	for _, file := range metalink.Files.Files {
+		if file.Name == "repomd.xml" {
+			urls := make([]types.MetaLinkFileResourceURL, 0, len(file.Resources.Urls))
+			for _, resUrl := range file.Resources.Urls {
+				if resUrl.Protocol == "http" || resUrl.Protocol == "https" {
+					urls = append(urls, resUrl)
+				}
+			}
+
+			if len(urls) == 0 {
+				return "", errors.New("no url for `repomd.xml` resource")
+			}
+
+			sort.Slice(urls, func(i, j int) bool {
+				return urls[j].Preference < urls[i].Preference
+			})
+
+			repomdUrl := strings.TrimSuffix(urls[0].URL, repomdSubpath)
+			return repomdUrl, nil
+		}
+	}
+
+	return "", fmt.Errorf("failed to fetch base URL from meta link: %s", metaLinkURL)
 }
 
 func (r *Repo) FetchPackagesLists(repoMd *types.Repomd) ([]*types.Package, error) {
