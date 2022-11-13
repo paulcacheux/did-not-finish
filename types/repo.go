@@ -16,3 +16,11 @@ type RepomdData struct {
 type Location struct {
 	Href string `xml:"href,attr"`
 }
+
+type MetaLink struct {
+	Files []MetaLinkFile `xml:"files"`
+}
+
+type MetaLinkFile struct {
+	Name string `xml:"name,attr"`
+}

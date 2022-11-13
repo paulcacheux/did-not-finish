@@ -24,6 +24,7 @@ type Repo struct {
 	Name        string
 	BaseURL     string
 	MirrorList  string
+	MetaLink    string
 	Enabled     bool
 	GpgCheck    bool
 	GpgKey      string
@@ -52,6 +53,7 @@ func ReadFromDir(repoDir string, varsReplacer *strings.Replacer) ([]Repo, error)
 			repo.Name = varsReplacer.Replace(section.Key("name").String())
 			repo.BaseURL = varsReplacer.Replace(section.Key("baseurl").String())
 			repo.MirrorList = varsReplacer.Replace(section.Key("mirrorlist").String())
+			repo.MetaLink = varsReplacer.Replace(section.Key("metalink").String())
 			repo.Enabled, _ = section.Key("enabled").Bool()
 			repo.GpgCheck, _ = section.Key("gpgcheck").Bool()
 			repo.GpgKey = varsReplacer.Replace(section.Key("gpgkey").String())
@@ -203,6 +205,10 @@ func fetchURLFromMirrorList(mirrorListURL string) (string, error) {
 	}
 
 	return mirrors[0], nil
+}
+
+func fetchURLFromMetaLink(metaLinkURL string) (string, error) {
+
 }
 
 func (r *Repo) FetchPackagesLists(repoMd *types.Repomd) ([]*types.Package, error) {
