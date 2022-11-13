@@ -10,14 +10,15 @@ import (
 )
 
 func main() {
-	var repoPath, varsPaths string
+	var repoPath, varsPaths, releaseVer string
 
 	flag.StringVar(&repoPath, "repos", "/etc/yum.repos.d/", "path to repos")
 	flag.StringVar(&varsPaths, "vars", "/etc/dnf/vars/,/etc/yum/vars/", "paths to variables")
+	flag.StringVar(&releaseVer, "release-ver", "", "release version")
 
 	flag.Parse()
 
-	builtinVars, err := backend.ComputeBuiltinVariables("2022.0.20220928")
+	builtinVars, err := backend.ComputeBuiltinVariables(releaseVer)
 	if err != nil {
 		panic(err)
 	}
