@@ -177,6 +177,11 @@ func (r *Repo) FetchURL() (string, error) {
 			return "", err
 		}
 
+		line := strings.TrimSpace(sc.Text())
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
+
 		mirrors = append(mirrors, sc.Text())
 	}
 
