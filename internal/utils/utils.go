@@ -21,7 +21,7 @@ func GetAndUnmarshalXML[T any](url string, checksum *types.Checksum) (*T, error)
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bad status: %s", resp.Status)
+		return nil, fmt.Errorf("bad status for `%s`: %s", url, resp.Status)
 	}
 
 	var reader io.Reader = resp.Body

@@ -199,7 +199,7 @@ func fetchURLFromMirrorList(mirrorListURL string) (string, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("bad status: %s", resp.Status)
+		return "", fmt.Errorf("bad status for `%s` : %s", mirrorListURL, resp.Status)
 	}
 
 	mirrors := make([]string, 0)
