@@ -40,27 +40,28 @@ func NewBackend(reposDir string, varsDir []string, builtinVariables map[string]s
 		return nil, err
 	}
 
+	replacedRepos := make([]repo.Repo, 0, len(repos))
 	for _, r := range repos {
-		replaceInRepo(varsReplacer, &r)
+		replacedRepos = append(replacedRepos, replaceInRepo(varsReplacer, r))
 	}
 
 	return &Backend{
-		Repositories: repos,
+		Repositories: replacedRepos,
 		varsReplacer: varsReplacer,
 	}, nil
 }
 
-func replaceInRepo(varsReplacer *strings.Replacer, r *repo.Repo) {
+func replaceInRepo(varsReplacer *strings.Replacer, r repo.Repo) repo.Repo {
 	r.Name = varsReplacer.Replace(r.Name)
 	r.BaseURL = varsReplacer.Replace(r.BaseURL)
 	r.MirrorList = varsReplacer.Replace(r.MirrorList)
 	r.MetaLink = varsReplacer.Replace(r.MetaLink)
 	r.GpgKey = varsReplacer.Replace(r.GpgKey)
+	return r
 }
 
 func (b *Backend) AppendRepository(r repo.Repo) {
-	replaceInRepo(b.varsReplacer, &r)
-	b.Repositories = append(b.Repositories, r)
+	b.Repositories = append(b.Repositories, replaceInRepo(b.varsReplacer, r))
 }
 
 func (b *Backend) FetchPackage(matcher repo.PkgMatchFunc) (*types.Package, []byte, error) {
