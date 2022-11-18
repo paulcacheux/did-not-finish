@@ -13,6 +13,7 @@ import (
 
 type Backend struct {
 	Repositories []repo.Repo
+	VarsReplacer *strings.Replacer
 }
 
 func NewBackend(reposDir string, varsDir []string, builtinVariables map[string]string) (*Backend, error) {
@@ -41,6 +42,7 @@ func NewBackend(reposDir string, varsDir []string, builtinVariables map[string]s
 
 	return &Backend{
 		Repositories: repos,
+		VarsReplacer: varsReplacer,
 	}, nil
 }
 
