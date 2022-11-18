@@ -13,7 +13,7 @@ import (
 
 type Backend struct {
 	Repositories []repo.Repo
-	VarsReplacer *strings.Replacer
+	varsReplacer *strings.Replacer
 }
 
 func NewBackend(reposDir string, varsDir []string, builtinVariables map[string]string) (*Backend, error) {
@@ -35,18 +35,31 @@ func NewBackend(reposDir string, varsDir []string, builtinVariables map[string]s
 
 	varsReplacer := buildVarsReplacer(varMaps...)
 
-	repos, err := repo.ReadFromDir(reposDir, varsReplacer)
+	repos, err := repo.ReadFromDir(reposDir)
 	if err != nil {
 		return nil, err
 	}
 
+	for _, r := range repos {
+		replaceInRepo(varsReplacer, &r)
+	}
+
 	return &Backend{
 		Repositories: repos,
-		VarsReplacer: varsReplacer,
+		varsReplacer: varsReplacer,
 	}, nil
 }
 
+func replaceInRepo(varsReplacer *strings.Replacer, r *repo.Repo) {
+	r.Name = varsReplacer.Replace(r.Name)
+	r.BaseURL = varsReplacer.Replace(r.BaseURL)
+	r.MirrorList = varsReplacer.Replace(r.MirrorList)
+	r.MetaLink = varsReplacer.Replace(r.MetaLink)
+	r.GpgKey = varsReplacer.Replace(r.GpgKey)
+}
+
 func (b *Backend) AppendRepository(r repo.Repo) {
+	replaceInRepo(b.varsReplacer, &r)
 	b.Repositories = append(b.Repositories, r)
 }
 

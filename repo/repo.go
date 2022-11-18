@@ -32,7 +32,7 @@ type Repo struct {
 	GpgKey      string
 }
 
-func ReadFromDir(repoDir string, varsReplacer *strings.Replacer) ([]Repo, error) {
+func ReadFromDir(repoDir string) ([]Repo, error) {
 	repoFiles, err := filepath.Glob(utils.HostEtcJoin(repoDir, "*.repo"))
 	if err != nil {
 		return nil, err
@@ -52,13 +52,13 @@ func ReadFromDir(repoDir string, varsReplacer *strings.Replacer) ([]Repo, error)
 
 			repo := Repo{}
 			repo.SectionName = section.Name()
-			repo.Name = varsReplacer.Replace(section.Key("name").String())
-			repo.BaseURL = varsReplacer.Replace(section.Key("baseurl").String())
-			repo.MirrorList = varsReplacer.Replace(section.Key("mirrorlist").String())
-			repo.MetaLink = varsReplacer.Replace(section.Key("metalink").String())
+			repo.Name = section.Key("name").String()
+			repo.BaseURL = section.Key("baseurl").String()
+			repo.MirrorList = section.Key("mirrorlist").String()
+			repo.MetaLink = section.Key("metalink").String()
 			repo.Enabled, _ = section.Key("enabled").Bool()
 			repo.GpgCheck, _ = section.Key("gpgcheck").Bool()
-			repo.GpgKey = varsReplacer.Replace(section.Key("gpgkey").String())
+			repo.GpgKey = section.Key("gpgkey").String()
 
 			repos = append(repos, repo)
 		}
