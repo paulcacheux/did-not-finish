@@ -86,22 +86,9 @@ func (r *Repo) FetchPackage(pkgMatcher PkgMatchFunc) (*types.Package, []byte, er
 
 	var entityList openpgp.EntityList
 	if r.GpgCheck {
-		gpgKeyUrl, err := url.Parse(r.GpgKey)
+		el, err := readGPGKey(r.GpgKey)
 		if err != nil {
-			return nil, nil, err
-		}
-		if gpgKeyUrl.Scheme != "file" {
-			return nil, nil, fmt.Errorf("only file scheme are supported for gpg key: %s", r.GpgKey)
-		}
-
-		publicKeyFile, err := os.Open(utils.HostEtcJoin(gpgKeyUrl.Path))
-		if err != nil {
-			return nil, nil, err
-		}
-
-		el, err := openpgp.ReadArmoredKeyRing(publicKeyFile)
-		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("failed to read gpg key: %w", err)
 		}
 		entityList = el
 	}
@@ -138,6 +125,38 @@ func (r *Repo) FetchPackage(pkgMatcher PkgMatchFunc) (*types.Package, []byte, er
 
 	// no error, but no package found either
 	return nil, nil, fmt.Errorf("failed to find valid package from repo %s", r.Name)
+}
+
+func readGPGKey(gpgKey string) (openpgp.EntityList, error) {
+	gpgKeyUrl, err := url.Parse(gpgKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var publicKeyReader io.Reader
+	if gpgKeyUrl.Scheme == "file" {
+		publicKeyFile, err := os.Open(utils.HostEtcJoin(gpgKeyUrl.Path))
+		if err != nil {
+			return nil, err
+		}
+		defer publicKeyFile.Close()
+		publicKeyReader = publicKeyFile
+	} else if gpgKeyUrl.Scheme == "http" || gpgKeyUrl.Scheme == "https" {
+		resp, err := http.Get(gpgKeyUrl.RequestURI())
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("bad status for `%s` : %s", gpgKey, resp.Status)
+		}
+		publicKeyReader = resp.Body
+	} else {
+		return nil, fmt.Errorf("only file and http(s) scheme are supported for gpg key: %s", gpgKey)
+	}
+
+	return openpgp.ReadArmoredKeyRing(publicKeyReader)
 }
 
 const repomdSubpath = "repodata/repomd.xml"
