@@ -2,6 +2,7 @@ package utils
 
 import (
 	"compress/gzip"
+	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/xml"
 	"errors"
@@ -53,11 +54,19 @@ func GetAndUnmarshalXML[T any](url string, checksum *types.Checksum) (*T, error)
 }
 
 func verifyChecksum(content []byte, checksum *types.Checksum) error {
-	if checksum.Type != "sha256" {
+	var contentSum []byte
+
+	switch checksum.Type {
+	case "sha256":
+		tmp := sha256.Sum256(content)
+		contentSum = tmp[:]
+	case "sha1":
+		tmp := sha1.Sum(content)
+		contentSum = tmp[:]
+	default:
 		return fmt.Errorf("unsupported sha type: %s", checksum.Type)
 	}
 
-	contentSum := sha256.Sum256(content)
 	if checksum.Hash != fmt.Sprintf("%x", contentSum) {
 		return errors.New("failed checksum")
 	}
